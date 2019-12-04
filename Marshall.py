@@ -16,27 +16,21 @@ class ApiGroupBase:
         response = requests.get(url=URL, params=parameters)
         return ET.fromstring(response.content)
 
-
-# API group with GET String
-class ApiGroupGet(ApiGroupBase):
     def get(self):
         xml_root = self.http('GET')
         value_list = list(xml_root.find('value'))
-        return value_list[0].text if len(value_list)>0 else ''
+        return value_list[0].text if len(value_list) > 0 else ''
 
-
-# API Group with SET only
-class ApiGroupSet(ApiGroupBase):
     def set(self, value: int):
         xml_root = self.http('SET',  {'value': value})
         return xml_root.find('status').text == 'FS_OK'
 
+    def get_set(self, value = None):
+        if value is None:
+            return self.get()
+        else:
+            return self.set(value)
 
-# API Group with GET and SET For SInt
-class ApiGroupGetSet(ApiGroupGet):
-    def set(self, value: int):
-        xml_root = self.http('SET',  {'value': value})
-        return xml_root.find('status').text == 'FS_OK'
 
 # API Group to list presets
 class ApiListPresets(ApiGroupBase):
@@ -94,49 +88,49 @@ class ApiListModes(ApiGroupBase):
         return modes
 
 
-# API
-class MultiRoomApi:
+# MultiRoom API
+class MultiRoomAPI:
     def __init__(self, ip):
-        self.name = ApiGroupGet(ip, 'netremote.sys.info.friendlyname')
-        self.mac = ApiGroupGet(ip, 'netremote.sys.net.wlan.macaddress')
-        self.version = ApiGroupGet(ip, 'netremote.sys.info.version')
-        self.vendorId = ApiGroupGet(ip, 'netremote.sys.info.netremotevendorid')
+        self.name = ApiGroupBase(ip, 'netremote.sys.info.friendlyname').get
+        self.mac = ApiGroupBase(ip, 'netremote.sys.net.wlan.macaddress').get
+        self.version = ApiGroupBase(ip, 'netremote.sys.info.version').get
+        self.vendorId = ApiGroupBase(ip, 'netremote.sys.info.netremotevendorid').get
 
-        self.mute = ApiGroupGetSet(ip, 'netremote.sys.audio.mute')
-        self.volume = ApiGroupGetSet(ip, 'netremote.sys.audio.volume')
-        self.volumeSteps = ApiGroupGet(ip, 'netremote.sys.caps.volumesteps')
+        self.mute = ApiGroupBase(ip, 'netremote.sys.audio.mute').get_set
+        self.volume = ApiGroupBase(ip, 'netremote.sys.audio.volume').get_set
+        self.volumeSteps = ApiGroupBase(ip, 'netremote.sys.caps.volumesteps').get
 
-        self.groupMasterVolume = ApiGroupGetSet(ip, 'netremote.multiroom.group.mastervolume')
-        self.groupId = ApiGroupGet(ip, 'netremote.multiroom.group.id')
-        self.groupName = ApiGroupGet(ip, 'netremote.multiroom.group.name')
-        self.groupState = ApiGroupGet(ip, 'netremote.multiroom.group.state')
+        self.groupMasterVolume = ApiGroupBase(ip, 'netremote.multiroom.group.mastervolume').get_set
+        self.groupId = ApiGroupBase(ip, 'netremote.multiroom.group.id').get
+        self.groupName = ApiGroupBase(ip, 'netremote.multiroom.group.name').get
+        self.groupState = ApiGroupBase(ip, 'netremote.multiroom.group.state').get
 
-        self.eqCustom0 = ApiGroupGetSet(ip, 'netremote.sys.audio.eqcustom.param0')
-        self.eqCustom1 = ApiGroupGetSet(ip, 'netremote.sys.audio.eqcustom.param1')
+        self.eqCustom0 = ApiGroupBase(ip, 'netremote.sys.audio.eqcustom.param0').get_set
+        self.eqCustom1 = ApiGroupBase(ip, 'netremote.sys.audio.eqcustom.param1').get_set
 
-        self.currentPreset = ApiGroupGet(ip, 'netremote.nav.preset.currentpreset') # cant set
+        self.currentPreset = ApiGroupBase(ip, 'netremote.nav.preset.currentpreset').get # cant set
 
         # 0: Nothing while Bluetooth not connected / AUX 2: Playing  / or RCA  3: Paused while spotify 6: Stopped while streaming
-        self.playStatus = ApiGroupGet(ip, 'netremote.play.status')
-        self.playCaps = ApiGroupGet(ip, 'netremote.play.caps')
-        self.playDuration = ApiGroupGet(ip, 'netremote.play.info.duration')
-        self.playImgUri = ApiGroupGet(ip, 'netremote.play.info.graphicuri')
-        self.playArtist = ApiGroupGet(ip, 'netremote.play.info.artist')
-        self.playAlbum = ApiGroupGet(ip, 'netremote.play.info.album')
-        self.playName = ApiGroupGet(ip, 'netremote.play.info.name')
-        self.playPosition = ApiGroupGet(ip, 'netremote.play.position')
-        self.playShuffle = ApiGroupGetSet(ip, 'netremote.play.shuffle')
-        self.playRepeat = ApiGroupGetSet(ip, 'netremote.play.repeat')
-        self.playSpotifyPlaylist = ApiGroupGet(ip, 'netremote.spotify.playlist.name')
-        self.playSpotifyPlaylistUri = ApiGroupGet(ip, 'netremote.spotify.playlist.uri')
+        self.playStatus = ApiGroupBase(ip, 'netremote.play.status').get
+        self.playCaps = ApiGroupBase(ip, 'netremote.play.caps').get
+        self.playDuration = ApiGroupBase(ip, 'netremote.play.info.duration').get
+        self.playImgUri = ApiGroupBase(ip, 'netremote.play.info.graphicuri').get
+        self.playArtist = ApiGroupBase(ip, 'netremote.play.info.artist').get
+        self.playAlbum = ApiGroupBase(ip, 'netremote.play.info.album').get
+        self.playName = ApiGroupBase(ip, 'netremote.play.info.name').get
+        self.playPosition = ApiGroupBase(ip, 'netremote.play.position').get
+        self.playShuffle = ApiGroupBase(ip, 'netremote.play.shuffle').get_set
+        self.playRepeat = ApiGroupBase(ip, 'netremote.play.repeat').get_set
+        self.playSpotifyPlaylist = ApiGroupBase(ip, 'netremote.spotify.playlist.name').get
+        self.playSpotifyPlaylistUri = ApiGroupBase(ip, 'netremote.spotify.playlist.uri').get
 
-        self.power = ApiGroupGetSet(ip, 'netremote.sys.power')
+        self.power = ApiGroupBase(ip, 'netremote.sys.power').get_set
 
-        self.listPresets = ApiListPresets(ip)
-        self.listModes = ApiListModes(ip)
-        self.selectPreset = ApiGroupSet(ip, 'netremote.nav.action.selectpreset')
-        self.state = ApiGroupSet(ip, 'netremote.nav.state') # 1 on selecting preset
-        self.playControl = ApiGroupSet(ip, 'netremote.play.control') # 0: Play/Stop (on Radio) 2: Play/Pause (on Spotify) 3: Next 4: Prev
+        self.listPresets = ApiListPresets(ip).list
+        self.listModes = ApiListModes(ip).list
+        self.selectPreset = ApiGroupBase(ip, 'netremote.nav.action.selectpreset').set
+        self.state = ApiGroupBase(ip, 'netremote.nav.state').set # 1 on selecting preset
+        self.playControl = ApiGroupBase(ip, 'netremote.play.control').set # 0: Play/Stop (on Radio) 2: Play/Pause (on Spotify) 3: Next 4: Prev
 
         # TODO
         # "http://192.168.192.33/fsapi/LIST_GET_NEXT/netremote.bluetooth.connecteddevices/-1?pin=1234&maxItems=20"
